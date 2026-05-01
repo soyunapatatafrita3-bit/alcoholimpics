@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Alcoholimpiadas UMD - Final Edition</title>
+    <style>
+        :root {
+            --umd-red: #E21833;
+            --umd-gold: #FFD520;
+            --umd-black: #000000;
+            --umd-white: #FFFFFF;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--umd-red);
+            color: var(--umd-white);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 15px;
+            box-sizing: border-box;
+            background-image: radial-gradient(circle, #E21833 0%, #8a0b1c 100%);
+            overflow-x: hidden;
+        }
+
+        .header { margin-bottom: 5px; }
+        .header h1 {
+            color: var(--umd-gold);
+            text-transform: uppercase;
+            font-size: 1.8em;
+            margin: 0;
+            text-shadow: 2px 2px var(--umd-black);
+        }
+
+        /* --- MARCADOR --- */
+        .marcador-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            background: rgba(0,0,0,0.4);
+            padding: 8px 15px;
+            border-radius: 12px;
+            border: 1px solid var(--umd-gold);
+        }
+        .score-rojo { color: #ff6b81; }
+        .score-dorado { color: var(--umd-gold); }
+
+        /* --- TARJETA PRINCIPAL --- */
+        .card {
+            background-color: var(--umd-white);
+            color: var(--umd-black);
+            border: 5px solid var(--umd-gold);
+            border-radius: 20px;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0px 10px 25px rgba(0,0,0,0.6);
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .card.evento-olimpico {
+            background-color: var(--umd-gold);
+            animation: parpadeo 0.8s infinite alternate;
+        }
+
+        @keyframes parpadeo {
+            0% { box-shadow: 0 0 10px var(--umd-gold); }
+            100% { box-shadow: 0 0 30px var(--umd-white); }
+        }
+
+        #jugador {
+            color: var(--umd-red);
+            font-size: 1.8em;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            border-bottom: 3px solid var(--umd-black);
+            width: 100%;
+        }
+
+        #prueba {
+            font-size: 1.2em;
+            line-height: 1.3;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        /* --- BOTONES --- */
+        .btn-principal {
+            margin-top: 20px;
+            background-color: var(--umd-black);
+            color: var(--umd-gold);
+            border: 3px solid var(--umd-gold);
+            padding: 15px 30px;
+            font-size: 1.4em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0px 5px 10px rgba(0,0,0,0.3);
+        }
+
+        .btn-principal:active { transform: scale(0.95); }
+
+        #botonesVictoria {
+            display: none;
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-equipo {
+            padding: 10px;
+            font-size: 0.9em;
+            font-weight: bold;
+            border-radius: 8px;
+            border: 2px solid var(--umd-black);
+            flex: 1;
+            cursor: pointer;
+        }
+        .btn-rojo-win { background-color: var(--umd-red); color: white; }
+        .btn-dorado-win { background-color: var(--umd-black); color: var(--umd-gold); }
+
+        .btn-danger {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: rgba(255,255,255,0.6);
+            margin-top: 20px;
+            font-size: 0.8em;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        /* --- PANTALLA FINAL --- */
+        #pantallaFinal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--umd-black);
+            z-index: 100;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--umd-gold);
+            padding: 20px;
+        }
+
+        .podium-title { font-size: 2.5em; margin-bottom: 20px; color: var(--umd-white); }
+        .winner-team { font-size: 3em; text-transform: uppercase; margin: 20px 0; }
+
+        @media (max-width: 480px) {
+            #jugador { font-size: 1.5em; }
+            #prueba { font-size: 1.1em; }
+            .btn-principal { font-size: 1.2em; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>UMD ALCOHOLIMPIADAS</h1>
+    </div>
+
+    <div class="marcador-container" id="marcadorUI">
+        <div class="score-rojo" id="txtRojo">Rojo: 0</div>
+        <div class="score-dorado" id="txtDorado">Negro: 0</div>
+    </div>
+
+    <div class="card" id="tarjeta">
+        <div id="jugador">¡A CALENTAR!</div>
+        <div id="prueba">Bienvenidos a la explanada. Preparad los vasos, aseguraos de que todo el mundo tiene bebida. ¡Empezamos en breve!</div>
+        
+        <div id="botonesVictoria">
+            <button class="btn-equipo btn-rojo-win" onclick="sumarPunto('rojo')">Gana Rojo</button>
+            <button class="btn-equipo btn-dorado-win" onclick="sumarPunto('dorado')">Gana Negro</button>
+        </div>
+    </div>
+
+    <button class="btn-principal" id="btnSiguiente" onclick="siguienteTurno()">Empezar Juego</button>
+    
+    <div style="display: flex; gap: 10px;">
+        <button class="btn-danger" onclick="finalizarJuego()">Finalizar Olimpiadas</button>
+        <button class="btn-danger" onclick="reiniciarJuego()">Reiniciar Todo</button>
+    </div>
+
+    <div id="pantallaFinal">
+        <div class="podium-title">🏆 RESULTADO FINAL 🏆</div>
+        <div id="puntosFinales" style="font-size: 1.5em;"></div>
+        <div class="winner-team" id="equipoGanador"></div>
+        <p style="color: white; font-style: italic;">"Lo que pasa en la explanada, se queda en la explanada."</p>
+        <button class="btn-principal" onclick="reiniciarJuego()">Nueva Partida</button>
+    </div>
+
+    <script>
+        const jugadores = ["Calvo", "Irene", "Cris", "Paula", "Carlos", "Marcelo", "Ignatz", "Orúe", "Del Pino", "Campos", "Richi", "Medem"];
+        
+        let turnoActual = 0;
+        let indiceEvento = 0;
+        let puntosRojo = 0;
+        let puntosDorado = 0;
+        let sacoJugadores = [];
+        let ultimoJugador = "";
+
+        // --- PRUEBAS ---
+        const preGame = [
+            "Binevenidos: Todos os teneis que abrir una cerveza y darle 3 tragos para empezar la partida...",
+            "FOTO DE EQUIPO: Todos a la explanada para una foto grupal. El último en llegar a la pose bebe 3 tragos.",
+            "¡INVENTARIO! Todos enseñad vuestras bebidas. El que tenga menos cantidad en el vaso, bebe 2 tragos para igualar.",
+            "BRINDIS DE INAUGURACIÓN: Brindis por el grupo. El último en tocar el vaso de los demás, bebe 3."
+        ];
+
+        const eventosOlimpicos = [
+            "🏁 ¡EL PAÑUELO! Dividíos en dos equipos. El equipo que pierda se bebe medio vaso cada uno.",
+            "🏃‍♂️ ¡RELEVOS DE CERVEZA! Carrera de 10 metros, beber medio vaso sin manos y volver. El equipo perdedor fondo.",
+            "🧠 ¡TRIVIAL UMD! El que sepa el nombre del presidente de la uni manda 3. Si nadie sabe, todos beben."
+        ];
+
+        const pruebasSuaves = [
+            "CULTURA MESOPOTÁMICA: Nombra algo que Calvo diría para ligar. El primero en repetir, bebe 3.",
+            "EL MUDO: No puedes hablar hasta que vuelva a ser tu turno. Si hablas, 3 tragos cada vez.",
+            "BUFFALO: A partir de ahora todos beben con la mano NO dominante. El que falle, 2 tragos.",
+            "PANCHITADA: Robale un trago de su vaso a la persona de tu izquierda.",
+            "RULETA DE NOMBRES: Di el nombre de un jugador. Ese tiene que decir otro sin repetir. El que falle, bebe 2."
+        ];
+
+        const pruebasMedias = [
+            "¡CHUPITO DE FIREBALL! Si hay a mano, te toca. Si no, 5 tragos largos de tu bebida.",
+            "FLEXIONES: Haz 5 flexiones cantando una canción. Si fallas, 4 tragos.",
+            "MEDUSA: A la de 3 todos miran a alguien. Si cruzas mirada con otro, los dos bebéis 3.",
+            "EL DICTADOR: Inventa una regla absurda (ej: no usar nombres). El que la rompa, bebe.",
+            "CARRERA: Reta a alguien a un sprint corto. El perdedor hidalgo!",
+            "BEBER SIN MANOS: Ponte de rodillas. Otro jugador te da de beber. Si se derrama, bebéis los dos."
+        ];
+
+        const pruebasFuertes = [
+            "EL PASO DE RAUW: Haz el paso de Rauw Alejandro (el de suelo). Si el grupo vota que ha sido lamentable, bebes 5.",
+            "TECHNO SILENCIOSO: Baila techno a muerte 30 segundos en silencio total. Si te da la risa, 4 tragos.",
+            "EL GUSANO: Intenta hacer el gusano en el suelo. Da igual el resultado, pero hazlo. Si no, 5 tragos.",
+            "CARRETILLA: Con una pareja, haced la carretilla 5 metros. Si caéis, 3 tragos cada uno.",
+            "STORY DE INSTAGRAM: Sube un selfie denigrante ahora mismo. Si no, 6 tragos largos.",
+            "BEBER SIN MANOS: Ponte de rodillas. Otro jugador te da de beber. Si se derrama, bebéis los dos.",
+            "INTERCAMBIO: Cámbiate la camiseta con el de tu derecha ahora mismo. Si no, hidalgo."
+        ];
+
+        const retosPersonalizados = {
+            "Ignatz": ["Canta 'Peregrino' a pleno pulmón o 4 tragos.", "Dirige un cántico subido a un banco."],
+            "Calvo": ["Usa tu mejor frase de ligue con un desconocido o árbol. Si no ríen, bebes 3.", "Wingman: Elige a alguien para beber juntos."],
+            "Cris": ["Elige a tu 'morenito del día' y bebed 3 tragos juntos.", "Carrera contra quien quieras, el perdedor 4 tragos."],
+            "Irene": ["Haz una coreografía de cheerleader positiva. Si no bebes, 3 tragos.", "Remate de volley: lanza un hielo a un vaso. Si fallas, bebes."],
+            "Carlos": ["Grita '¡Gabi te quiero!' hacia Boston o fondo.", "Habla con acento de USA 2 turnos o bebe."],
+            "Orúe": ["Pulso en el suelo contra el más fuerte. Si pierdes, vaso entero.", "Di por qué eres el mejor. Si te abuchean, 3 tragos."],
+            "Richi": ["Fan de la cerveza: si tu vaso no está vacío, acábatelo.", "Si tienes tabaco, manda a alguien a correr una vuelta."],
+            "Medem": ["Suerte bastarda: reparte 5 tragos pero tú bebes medio vaso.", "No puedes levantarte del suelo hasta tu próximo turno."],
+            "Marcelo": ["¡Avión! Corre haciendo ruido de motor 10 segundos o 4 tragos.", "Reparte 1 trago por cada vuelo este año."],
+            "Paula": ["Misterio: manda beber a 3 personas sin decirles por qué.", "Serio. El que ría, 3 tragos."],
+            "Del Pino": ["Tiro libre: lanza una chapa/tapón a una papelera. Si fallas, 3 tragos.", "Beben los apellidos con 'Del'."],
+            "Campos": ["Don Campolas: todos deben llamarte así o beben.", "El suelo es lava: elige un área donde nadie pueda pisar."]
+        };
+
+        // Copias para no repetir
+        let suavesDisp = [...pruebasSuaves];
+        let mediasDisp = [...pruebasMedias];
+        let fuertesDisp = [...pruebasFuertes];
+        let persDisp = JSON.parse(JSON.stringify(retosPersonalizados));
+
+        function sacarSiguienteJugador() {
+            if (sacoJugadores.length === 0) {
+                sacoJugadores = [...jugadores].sort(() => Math.random() - 0.5);
+                if (sacoJugadores[0] === ultimoJugador) sacoJugadores.push(sacoJugadores.shift());
+            }
+            ultimoJugador = sacoJugadores.shift();
+            return ultimoJugador;
+        }
+
+        function sumarPunto(equipo) {
+            if(equipo === 'rojo') { puntosRojo++; document.getElementById('txtRojo').innerText = `Rojo: ${puntosRojo}`; }
+            else if(equipo === 'dorado') { puntosDorado++; document.getElementById('txtDorado').innerText = `Negro: ${puntosDorado}`; }
+            document.getElementById('botonesVictoria').style.display = 'none';
+            document.getElementById('btnSiguiente').disabled = false;
+        }
+
+        function siguienteTurno() {
+            turnoActual++;
+            document.getElementById('btnSiguiente').innerText = "Siguiente Prueba";
+            const tarjeta = document.getElementById("tarjeta");
+            const divJugador = document.getElementById("jugador");
+            const divPrueba = document.getElementById("prueba");
+            const divBotones = document.getElementById("botonesVictoria");
+
+            tarjeta.classList.remove("evento-olimpico");
+            divBotones.style.display = "none";
+
+            // FASE 1: Calentamiento
+            if (turnoActual <= preGame.length) {
+                divJugador.innerText = "¡PRE-GAME!";
+                divPrueba.innerText = preGame[turnoActual - 1];
+                return;
+            }
+
+            // FASE 2: Eventos Olímpicos
+            if (turnoActual > 3 && (turnoActual % 10 === 0) && indiceEvento < eventosOlimpicos.length) {
+                tarjeta.classList.add("evento-olimpico");
+                divJugador.innerText = "🏆 EVENTO OLÍMPICO 🏆";
+                divPrueba.innerText = eventosOlimpicos[indiceEvento];
+                indiceEvento++;
+                divBotones.style.display = "flex";
+                document.getElementById('btnSiguiente').disabled = true;
+                return;
+            }
+
+            // SACAR JUGADOR Y PRUEBA
+            const jugador = sacarSiguienteJugador();
+            let prueba = "";
+            let probPers = (persDisp[jugador] && persDisp[jugador].length > 0) ? 0.45 : 0;
+
+            if (Math.random() < probPers) {
+                let index = Math.floor(Math.random() * persDisp[jugador].length);
+                prueba = persDisp[jugador][index];
+                persDisp[jugador].splice(index, 1);
+            } else {
+                let pool = [];
+                if (turnoActual < 15) pool = suavesDisp;
+                else if (turnoActual < 30) pool = mediasDisp;
+                else pool = fuertesDisp;
+
+                if (pool.length === 0) { // Recargar si se vacía
+                    if (turnoActual < 15) suavesDisp = [...pruebasSuaves];
+                    else if (turnoActual < 30) mediasDisp = [...pruebasMedias];
+                    else fuertesDisp = [...pruebasFuertes];
+                    pool = (turnoActual < 15) ? suavesDisp : (turnoActual < 30 ? mediasDisp : fuertesDisp);
+                }
+
+                let index = Math.floor(Math.random() * pool.length);
+                prueba = pool[index];
+                pool.splice(index, 1);
+            }
+
+            divJugador.innerText = jugador;
+            divPrueba.innerText = prueba;
+        }
+
+        function finalizarJuego() {
+            if(!confirm("¿Seguro que quieres terminar las Alcoholimpiadas y ver al ganador?")) return;
+            
+            document.getElementById('pantallaFinal').style.display = 'flex';
+            document.getElementById('puntosFinales').innerText = `Rojo: ${puntosRojo} | Negro: ${puntosDorado}`;
+            
+            const gan = document.getElementById('equipoGanador');
+            if(puntosRojo > puntosDorado) { gan.innerText = "¡GANA EL EQUIPO ROJO!"; gan.style.color = "var(--umd-red)"; }
+            else if(puntosDorado > puntosRojo) { gan.innerText = "¡GANA EL EQUIPO NEGRO!"; gan.style.color = "var(--umd-gold)"; }
+            else { gan.innerText = "¡EMPATE TÉCNICO!"; gan.style.color = "white"; }
+        }
+
+        function reiniciarJuego() {
+            if(turnoActual > 0 && !confirm("¿Reiniciar todo el progreso?")) return;
+            location.reload();
+        }
+    </script>
+</body>
+</html>
